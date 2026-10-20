@@ -1,26 +1,37 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   XMarkIcon,
   ExclamationCircleIcon,
   CalendarDaysIcon,
   CurrencyDollarIcon,
   UserIcon,
-} from "@heroicons/react/24/outline";
-import {
-  Booking,
-  BookingStatus,
-  PaymentStatus,
-  CreateBookingDto,
-} from "@/lib/types/booking";
+} from '@heroicons/react/24/outline';
+import { Booking, BookingStatus, PaymentStatus, CreateBookingDto } from '@/lib/types/booking';
 
 interface BookingFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: CreateBookingDto) => Promise<void>;
   initialBooking?: Booking | null;
+}
+
+function addNights(checkIn: string, nights: number): string {
+  const date = new Date(`${checkIn}T00:00:00.000Z`);
+  if (!Number.isFinite(date.getTime())) return '';
+  date.setUTCDate(date.getUTCDate() + nights);
+  return date.toISOString().slice(0, 10);
+}
+
+function countNights(checkIn: string, checkOut: string): number {
+  if (!checkIn || !checkOut) return 0;
+  const start = new Date(`${checkIn}T00:00:00.000Z`);
+  const end = new Date(`${checkOut}T00:00:00.000Z`);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start)
+    return 0;
+  return Math.round((end.getTime() - start.getTime()) / 86400000);
 }
 
 export default function BookingFormModal({
@@ -32,19 +43,19 @@ export default function BookingFormModal({
   const isEditing = !!initialBooking;
   const [mounted, setMounted] = useState(false);
 
-  const [guestName, setGuestName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [guestName, setGuestName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
-  const [accommodation, setAccommodation] = useState("Villa B on the Sea (Full Villa)");
+  const [accommodation, setAccommodation] = useState('Villa B on the Sea (Full Villa)');
   const [amount, setAmount] = useState(3500);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
-  const [status, setStatus] = useState<BookingStatus>("pending");
-  const [notes, setNotes] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
+  const [status, setStatus] = useState<BookingStatus>('pending');
+  const [notes, setNotes] = useState('');
 
-  const [nights, setNights] = useState(1);
+  const nights = countNights(checkIn, checkOut);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -55,17 +66,17 @@ export default function BookingFormModal({
   // Populate fields when modal opens or initialBooking changes
   useEffect(() => {
     if (initialBooking) {
-      setGuestName(initialBooking.guestName || "");
-      setEmail(initialBooking.email || "");
-      setPhone(initialBooking.phone || "");
-      setCheckIn(initialBooking.checkIn || "");
-      setCheckOut(initialBooking.checkOut || "");
+      setGuestName(initialBooking.guestName || '');
+      setEmail(initialBooking.email || '');
+      setPhone(initialBooking.phone || '');
+      setCheckIn(initialBooking.checkIn || '');
+      setCheckOut(initialBooking.checkOut || '');
       setGuests(initialBooking.guests || 2);
-      setAccommodation(initialBooking.accommodation || "Villa B on the Sea (Full Villa)");
+      setAccommodation(initialBooking.accommodation || 'Villa B on the Sea (Full Villa)');
       setAmount(initialBooking.amount || 0);
-      setPaymentStatus(initialBooking.paymentStatus || "pending");
-      setStatus(initialBooking.status || "pending");
-      setNotes(initialBooking.notes || "");
+      setPaymentStatus(initialBooking.paymentStatus || 'pending');
+      setStatus(initialBooking.status || 'pending');
+      setNotes(initialBooking.notes || '');
     } else {
       // Default to next week for new booking
       const today = new Date();
@@ -74,39 +85,23 @@ export default function BookingFormModal({
       const outDate = new Date();
       outDate.setDate(today.getDate() + 12);
 
-      const inStr = inDate.toISOString().split("T")[0];
-      const outStr = outDate.toISOString().split("T")[0];
+      const inStr = inDate.toISOString().split('T')[0];
+      const outStr = outDate.toISOString().split('T')[0];
 
-      setGuestName("");
-      setEmail("");
-      setPhone("");
+      setGuestName('');
+      setEmail('');
+      setPhone('');
       setCheckIn(inStr);
       setCheckOut(outStr);
       setGuests(4);
-      setAccommodation("Villa B on the Sea (Full Villa)");
+      setAccommodation('Villa B on the Sea (Full Villa)');
       setAmount(4500);
-      setPaymentStatus("pending");
-      setStatus("confirmed");
-      setNotes("");
+      setPaymentStatus('pending');
+      setStatus('confirmed');
+      setNotes('');
     }
     setErrorMessage(null);
   }, [initialBooking, isOpen]);
-
-  // Recalculate nights when dates change
-  useEffect(() => {
-    if (checkIn && checkOut) {
-      const start = new Date(checkIn);
-      const end = new Date(checkOut);
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start) {
-        const diffDays = Math.ceil(
-          Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        setNights(diffDays);
-      } else {
-        setNights(0);
-      }
-    }
-  }, [checkIn, checkOut]);
 
   if (!isOpen) return null;
 
@@ -116,37 +111,42 @@ export default function BookingFormModal({
 
     // Client-side validations
     if (!guestName.trim()) {
-      setErrorMessage("Guest full name is required.");
+      setErrorMessage('Guest full name is required.');
       return;
     }
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrorMessage("A valid email address is required.");
+      setErrorMessage('A valid email address is required.');
       return;
     }
 
     if (!phone.trim()) {
-      setErrorMessage("A contact phone number is required.");
+      setErrorMessage('A contact phone number is required.');
       return;
     }
 
     if (!checkIn || !checkOut) {
-      setErrorMessage("Both check-in and check-out dates are required.");
+      setErrorMessage('Both check-in and check-out dates are required.');
       return;
     }
 
     if (checkOut <= checkIn) {
-      setErrorMessage("Check-out date must be strictly after check-in date.");
+      setErrorMessage('Check-out date must be strictly after check-in date.');
       return;
     }
 
     if (guests < 1) {
-      setErrorMessage("Number of guests must be at least 1.");
+      setErrorMessage('Number of guests must be at least 1.');
       return;
     }
 
     if (amount < 0) {
-      setErrorMessage("Total booking amount cannot be negative.");
+      setErrorMessage('Total booking amount cannot be negative.');
+      return;
+    }
+
+    if (nights < 1) {
+      setErrorMessage('Stay length must be at least 1 night.');
       return;
     }
 
@@ -169,7 +169,7 @@ export default function BookingFormModal({
       });
       onClose();
     } catch (err: any) {
-      setErrorMessage(err?.message || "An unexpected error occurred while saving.");
+      setErrorMessage(err?.message || 'An unexpected error occurred while saving.');
     } finally {
       setIsSubmitting(false);
     }
@@ -191,12 +191,12 @@ export default function BookingFormModal({
             </div>
             <div>
               <h3 className="font-serif text-lg font-bold text-[#1C1917]">
-                {isEditing ? `Edit Booking: ${initialBooking?.bookingRef}` : "Create New Booking"}
+                {isEditing ? `Edit Booking: ${initialBooking?.bookingRef}` : 'Create New Booking'}
               </h3>
               <p className="text-xs text-[#78716C]">
                 {isEditing
-                  ? "Update reservation information and guest details"
-                  : "Record a manual or direct concierge reservation"}
+                  ? 'Update reservation information and guest details'
+                  : 'Record a manual or direct concierge reservation'}
               </p>
             </div>
           </div>
@@ -212,7 +212,11 @@ export default function BookingFormModal({
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto" noValidate>
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 max-h-[80vh] overflow-y-auto"
+          noValidate
+        >
           {/* Error Banner */}
           {errorMessage && (
             <div
@@ -290,7 +294,15 @@ export default function BookingFormModal({
                   type="date"
                   required
                   value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
+                  onChange={(e) => {
+                    const nextCheckIn = e.target.value;
+                    setCheckIn(nextCheckIn);
+                    if (!nextCheckIn) {
+                      setCheckOut('');
+                    } else {
+                      setCheckOut(addNights(nextCheckIn, nights || 1));
+                    }
+                  }}
                   className="w-full px-4 py-2.5 rounded-2xl border border-stone-200 bg-stone-50/50 text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#C88A4B]/20 focus:border-[#C88A4B] transition-all"
                 />
               </div>
@@ -309,12 +321,23 @@ export default function BookingFormModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  Nights
-                </label>
-                <div className="w-full px-4 py-2.5 rounded-2xl border border-stone-200 bg-[#F4EFE9] text-xs font-semibold text-stone-800">
-                  {nights > 0 ? `${nights} Nights` : "Invalid dates"}
-                </div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Nights</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  required
+                  value={nights > 0 ? nights : ''}
+                  onChange={(e) => {
+                    if (!e.target.value) {
+                      setCheckOut('');
+                      return;
+                    }
+                    const safeNights = Math.min(365, Math.max(1, Number(e.target.value)));
+                    if (checkIn) setCheckOut(addNights(checkIn, safeNights));
+                  }}
+                  className="w-full px-4 py-2.5 rounded-2xl border border-stone-200 bg-stone-50/50 text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#C88A4B]/20 focus:border-[#C88A4B] transition-all"
+                />
               </div>
 
               <div>
@@ -418,7 +441,8 @@ export default function BookingFormModal({
           {/* Section 4: Notes */}
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-              Internal Administrative Notes <span className="text-stone-400 font-normal lowercase">(optional)</span>
+              Internal Administrative Notes{' '}
+              <span className="text-stone-400 font-normal lowercase">(optional)</span>
             </label>
             <textarea
               rows={2}
@@ -447,7 +471,7 @@ export default function BookingFormModal({
               {isSubmitting ? (
                 <span>Saving Booking...</span>
               ) : (
-                <span>{isEditing ? "Update Booking" : "Create Booking"}</span>
+                <span>{isEditing ? 'Update Booking' : 'Create Booking'}</span>
               )}
             </button>
           </div>

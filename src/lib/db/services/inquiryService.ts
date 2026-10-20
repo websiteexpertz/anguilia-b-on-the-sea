@@ -170,7 +170,8 @@ export async function ensureSeedInquiries(): Promise<void> {
  */
 export async function checkInquiryAvailability(
   checkIn: string,
-  checkOut: string
+  checkOut: string,
+  options: { excludeBookingId?: string } = {}
 ): Promise<InquiryAvailability> {
   if (checkIn >= checkOut) {
     return {
@@ -184,11 +185,16 @@ export async function checkInquiryAvailability(
   const db = await getDatabase();
 
   // 1. Check bookings collection (confirmed, completed, pending)
-  const conflictingBooking = await db.collection("bookings").findOne({
+  const bookingQuery: Record<string, unknown> = {
     status: { $in: ["confirmed", "completed", "pending"] },
     checkIn: { $lt: checkOut },
     checkOut: { $gt: checkIn },
-  });
+  };
+  if (options.excludeBookingId && ObjectId.isValid(options.excludeBookingId)) {
+    bookingQuery._id = { $ne: new ObjectId(options.excludeBookingId) };
+  }
+
+  const conflictingBooking = await db.collection("bookings").findOne(bookingQuery);
 
   if (conflictingBooking) {
     const ref = conflictingBooking.bookingRef || "Confirmed Booking";
@@ -204,7 +210,7 @@ export async function checkInquiryAvailability(
   // 2. Check blocked_dates collection
   const conflictingBlock = await db.collection("blocked_dates").findOne({
     startDate: { $lt: checkOut },
-    endDate: { $gt: checkIn },
+    endDate: { $gte: checkIn },
   });
 
   if (conflictingBlock) {

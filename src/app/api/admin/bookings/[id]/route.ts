@@ -4,6 +4,7 @@ import {
   getBookingById,
   updateBooking,
   cancelBooking,
+  deleteBooking,
 } from "@/lib/db/services/bookingService";
 
 export async function GET(
@@ -84,6 +85,31 @@ export async function PATCH(
     return NextResponse.json(
       { error: error?.message || "Failed to update booking." },
       { status: 400 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const deleted = await deleteBooking(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Booking ${deleted.bookingRef} deleted successfully.`,
+      booking: deleted,
+    });
+  } catch (error) {
+    console.error("Error deleting booking:", error);
+    return NextResponse.json(
+      { error: "Failed to delete booking." },
+      { status: 500 }
     );
   }
 }

@@ -1,23 +1,19 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import BookingFilters from "./components/BookingFilters";
-import BookingListTable from "./components/BookingListTable";
-import BookingDetailDrawer from "./components/BookingDetailDrawer";
-import BookingFormModal from "./components/BookingFormModal";
-import CancelConfirmModal from "./components/CancelConfirmModal";
-import {
-  Booking,
-  BookingStatus,
-  CreateBookingDto,
-  UpdateBookingDto,
-} from "@/lib/types/booking";
+import React, { useState, useEffect, useCallback } from 'react';
+import BookingFilters from './components/BookingFilters';
+import BookingListTable from './components/BookingListTable';
+import BookingDetailDrawer from './components/BookingDetailDrawer';
+import BookingFormModal from './components/BookingFormModal';
+import CancelConfirmModal from './components/CancelConfirmModal';
+import DeleteBookingConfirmModal from './components/DeleteBookingConfirmModal';
+import { Booking, BookingStatus, CreateBookingDto, UpdateBookingDto } from '@/lib/types/booking';
 import {
   PlusIcon,
   ArrowPathIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -28,11 +24,11 @@ export default function AdminBookingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filters & Sorting state
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<BookingStatus | "all">("all");
-  const [timeframe, setTimeframe] = useState<"all" | "upcoming" | "past">("all");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<BookingStatus | 'all'>('all');
+  const [timeframe, setTimeframe] = useState<'all' | 'upcoming' | 'past'>('all');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Drawers & Modals state
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -40,6 +36,8 @@ export default function AdminBookingsPage() {
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
 
   // Notifications
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -52,39 +50,42 @@ export default function AdminBookingsPage() {
     }, 4000);
   };
 
-  const fetchBookings = useCallback(async (isManualRefresh = false) => {
-    if (isManualRefresh) setIsRefreshing(true);
-    else setIsLoading(true);
-    setErrorMessage(null);
+  const fetchBookings = useCallback(
+    async (isManualRefresh = false) => {
+      if (isManualRefresh) setIsRefreshing(true);
+      else setIsLoading(true);
+      setErrorMessage(null);
 
-    try {
-      const params = new URLSearchParams();
-      if (search.trim()) params.set("search", search.trim());
-      if (status !== "all") params.set("status", status);
-      if (timeframe !== "all") params.set("timeframe", timeframe);
-      params.set("sortBy", sortBy);
-      params.set("sortOrder", sortOrder);
-      params.set("page", page.toString());
-      params.set("limit", "10");
+      try {
+        const params = new URLSearchParams();
+        if (search.trim()) params.set('search', search.trim());
+        if (status !== 'all') params.set('status', status);
+        if (timeframe !== 'all') params.set('timeframe', timeframe);
+        params.set('sortBy', sortBy);
+        params.set('sortOrder', sortOrder);
+        params.set('page', page.toString());
+        params.set('limit', '10');
 
-      const res = await fetch(`/api/admin/bookings?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch bookings list");
+        const res = await fetch(`/api/admin/bookings?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to fetch bookings list');
 
-      const json = await res.json();
-      if (json.success && json.data) {
-        setBookings(json.data.bookings || []);
-        setTotal(json.data.total || 0);
-        setPage(json.data.page || 1);
-        setTotalPages(json.data.totalPages || 1);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setBookings(json.data.bookings || []);
+          setTotal(json.data.total || 0);
+          setPage(json.data.page || 1);
+          setTotalPages(json.data.totalPages || 1);
+        }
+      } catch (err: any) {
+        console.error('Bookings fetch error:', err);
+        setErrorMessage('Unable to load bookings from database. Please try again.');
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-    } catch (err: any) {
-      console.error("Bookings fetch error:", err);
-      setErrorMessage("Unable to load bookings from database. Please try again.");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [search, status, timeframe, sortBy, sortOrder, page]);
+    },
+    [search, status, timeframe, sortBy, sortOrder, page]
+  );
 
   useEffect(() => {
     fetchBookings();
@@ -95,13 +96,13 @@ export default function AdminBookingsPage() {
     if (editingBooking) {
       // Edit
       const res = await fetch(`/api/admin/bookings/${editingBooking._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to update booking");
+        throw new Error(data.error || 'Failed to update booking');
       }
       showToast(`Booking ${data.booking.bookingRef} updated successfully`);
       if (selectedBooking && selectedBooking._id === editingBooking._id) {
@@ -109,14 +110,14 @@ export default function AdminBookingsPage() {
       }
     } else {
       // Create
-      const res = await fetch("/api/admin/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create booking");
+        throw new Error(data.error || 'Failed to create booking');
       }
       showToast(`Booking ${data.booking.bookingRef} created successfully`);
     }
@@ -130,18 +131,18 @@ export default function AdminBookingsPage() {
   const handleStatusChange = async (id: string, newStatus: BookingStatus) => {
     try {
       const res = await fetch(`/api/admin/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Status update failed");
+      if (!res.ok) throw new Error(data.error || 'Status update failed');
 
       showToast(`Booking status changed to ${newStatus}`);
       setSelectedBooking(data.booking);
       fetchBookings();
     } catch (err: any) {
-      alert(err.message || "Failed to update status");
+      alert(err.message || 'Failed to update status');
     }
   };
 
@@ -149,18 +150,18 @@ export default function AdminBookingsPage() {
   const handleNotesSave = async (id: string, newNotes: string) => {
     try {
       const res = await fetch(`/api/admin/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: newNotes }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save notes");
+      if (!res.ok) throw new Error(data.error || 'Failed to save notes');
 
-      showToast("Notes saved successfully");
+      showToast('Notes saved successfully');
       setSelectedBooking(data.booking);
       fetchBookings();
     } catch (err: any) {
-      alert(err.message || "Failed to save notes");
+      alert(err.message || 'Failed to save notes');
     }
   };
 
@@ -168,12 +169,12 @@ export default function AdminBookingsPage() {
   const handleCancelConfirm = async (bookingId: string, reason?: string) => {
     try {
       const res = await fetch(`/api/admin/bookings/${bookingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel", reason }),
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel', reason }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Cancellation failed");
+      if (!res.ok) throw new Error(data.error || 'Cancellation failed');
 
       showToast(`Booking ${data.booking.bookingRef} cancelled`);
       if (selectedBooking && selectedBooking._id === bookingId) {
@@ -181,8 +182,20 @@ export default function AdminBookingsPage() {
       }
       fetchBookings();
     } catch (err: any) {
-      alert(err.message || "Failed to cancel booking");
+      alert(err.message || 'Failed to cancel booking');
     }
+  };
+
+  const handleDeleteConfirm = async (bookingId: string) => {
+    const res = await fetch(`/api/admin/bookings/${bookingId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete booking.');
+
+    showToast(`Booking ${data.booking?.bookingRef || 'record'} permanently deleted.`);
+    if (selectedBooking?._id === bookingId) setSelectedBooking(null);
+    setBookingToDelete(null);
+    setDeleteModalOpen(false);
+    await fetchBookings();
   };
 
   return (
@@ -230,7 +243,7 @@ export default function AdminBookingsPage() {
             aria-label="Refresh Bookings"
           >
             <ArrowPathIcon
-              className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#C88A4B]" : ""}`}
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#C88A4B]' : ''}`}
             />
           </button>
 
@@ -290,6 +303,10 @@ export default function AdminBookingsPage() {
           setBookingToCancel(b);
           setCancelModalOpen(true);
         }}
+        onDeleteBooking={(b) => {
+          setBookingToDelete(b);
+          setDeleteModalOpen(true);
+        }}
         onAddBooking={() => {
           setEditingBooking(null);
           setFormModalOpen(true);
@@ -309,6 +326,10 @@ export default function AdminBookingsPage() {
         onCancel={(b) => {
           setBookingToCancel(b);
           setCancelModalOpen(true);
+        }}
+        onDelete={(b) => {
+          setBookingToDelete(b);
+          setDeleteModalOpen(true);
         }}
         onStatusChange={handleStatusChange}
         onNotesSave={handleNotesSave}
@@ -334,6 +355,16 @@ export default function AdminBookingsPage() {
           setBookingToCancel(null);
         }}
         onConfirm={handleCancelConfirm}
+      />
+
+      <DeleteBookingConfirmModal
+        booking={bookingToDelete}
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setBookingToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );

@@ -5,8 +5,9 @@ import {
   BookingFilterOptions,
   CreateBookingDto,
   UpdateBookingDto,
-  BookingStatus,
 } from "../../types/booking";
+import { syncCalendarFeed } from "./calendarSyncService";
+import { checkInquiryAvailability } from "./inquiryService";
 
 function calculateNights(checkIn: string, checkOut: string): number {
   const start = new Date(checkIn);
@@ -23,34 +24,6 @@ function generateBookingRef(): string {
     random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `VB-${year}-${random}`;
-}
-
-/**
- * Checks if the requested dates overlap with an already confirmed booking
- */
-export async function checkDateConflict(
-  checkIn: string,
-  checkOut: string,
-  excludeId?: string
-): Promise<{ hasConflict: boolean; conflictingBooking?: any }> {
-  const db = await getDatabase();
-  const query: any = {
-    status: { $in: ["confirmed", "completed"] },
-    // Date overlap formula: (existing.checkIn < newCheckOut) AND (existing.checkOut > newCheckIn)
-    checkIn: { $lt: checkOut },
-    checkOut: { $gt: checkIn },
-  };
-
-  if (excludeId && ObjectId.isValid(excludeId)) {
-    query._id = { $ne: new ObjectId(excludeId) };
-  }
-
-  const conflictingBooking = await db.collection("bookings").findOne(query);
-
-  return {
-    hasConflict: !!conflictingBooking,
-    conflictingBooking: conflictingBooking || undefined,
-  };
 }
 
 /**
@@ -177,17 +150,8 @@ export async function createBooking(data: CreateBookingDto): Promise<Booking> {
     throw new Error("Check-out date must be after check-in date");
   }
 
-  // Conflict check if creating as Confirmed
-  if (data.status === "confirmed") {
-    const { hasConflict, conflictingBooking } = await checkDateConflict(
-      data.checkIn,
-      data.checkOut
-    );
-    if (hasConflict) {
-      throw new Error(
-        `Selected dates overlap with confirmed booking ${conflictingBooking.bookingRef || "record"}.`
-      );
-    }
+  if (data.status !== "cancelled") {
+    await ensureBookingDatesAvailable(data.checkIn, data.checkOut);
   }
 
   const now = new Date().toISOString();
@@ -255,18 +219,13 @@ export async function updateBooking(
     throw new Error("Check-out date must be after check-in date");
   }
 
-  // If status is becoming or staying confirmed, check conflict
-  if (targetStatus === "confirmed") {
-    const { hasConflict, conflictingBooking } = await checkDateConflict(
-      targetCheckIn,
-      targetCheckOut,
-      id
-    );
-    if (hasConflict) {
-      throw new Error(
-        `Selected dates overlap with confirmed booking ${conflictingBooking.bookingRef || "record"}.`
-      );
-    }
+  const datesChanged = targetCheckIn !== existing.checkIn || targetCheckOut !== existing.checkOut;
+  const statusChanged = targetStatus !== existing.status;
+  if (
+    targetStatus !== "cancelled" &&
+    (datesChanged || statusChanged)
+  ) {
+    await ensureBookingDatesAvailable(targetCheckIn, targetCheckOut, id);
   }
 
   const nights = calculateNights(targetCheckIn, targetCheckOut);
@@ -318,6 +277,28 @@ export async function updateBooking(
   return getBookingById(id);
 }
 
+async function ensureBookingDatesAvailable(
+  checkIn: string,
+  checkOut: string,
+  excludeBookingId?: string
+): Promise<void> {
+  try {
+    await syncCalendarFeed({ force: true });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Calendar sync failed.";
+    throw new Error(`Cannot verify availability because the connected VRBO calendar could not be refreshed: ${detail}`);
+  }
+
+  const availability = await checkInquiryAvailability(checkIn, checkOut, {
+    excludeBookingId,
+  });
+  if (!availability.isAvailable) {
+    throw new Error(
+      `Cannot save booking: ${availability.conflictReason || "These dates conflict with an existing reservation or calendar block."}`
+    );
+  }
+}
+
 /**
  * Cancels a booking without hard-deleting the record
  */
@@ -357,4 +338,35 @@ export async function cancelBooking(id: string, reason?: string): Promise<Bookin
   }
 
   return getBookingById(id);
+}
+
+/** Permanently deletes a booking record and logs the removal. */
+export async function deleteBooking(id: string): Promise<Booking | null> {
+  if (!ObjectId.isValid(id)) return null;
+
+  const db = await getDatabase();
+  const collection = db.collection("bookings");
+  const existing = await collection.findOne({ _id: new ObjectId(id) });
+  if (!existing) return null;
+
+  const result = await collection.deleteOne({ _id: new ObjectId(id) });
+  if (result.deletedCount !== 1) return null;
+
+  try {
+    const now = new Date().toISOString();
+    await db.collection("activities").insertOne({
+      type: "booking_deleted",
+      title: "Booking Deleted",
+      description: `Booking ${existing.bookingRef || id} for ${existing.guestName || "guest"} was permanently deleted.`,
+      timestamp: now,
+      createdAt: now,
+    });
+  } catch (error) {
+    console.error("Failed to log booking deletion:", error);
+  }
+
+  return {
+    ...existing,
+    _id: existing._id.toString(),
+  } as Booking;
 }

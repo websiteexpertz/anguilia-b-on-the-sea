@@ -1,16 +1,17 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 import {
   EyeIcon,
   PencilSquareIcon,
   XCircleIcon,
+  TrashIcon,
   PlusIcon,
   CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "@heroicons/react/24/outline";
-import { Booking, BookingStatus } from "@/lib/types/booking";
+} from '@heroicons/react/24/outline';
+import { Booking, BookingStatus } from '@/lib/types/booking';
 
 interface BookingListTableProps {
   bookings: Booking[];
@@ -21,6 +22,7 @@ interface BookingListTableProps {
   onSelectBooking: (booking: Booking) => void;
   onEditBooking: (booking: Booking) => void;
   onCancelBooking: (booking: Booking) => void;
+  onDeleteBooking: (booking: Booking) => void;
   onAddBooking: () => void;
   isLoading?: boolean;
 }
@@ -34,30 +36,31 @@ export default function BookingListTable({
   onSelectBooking,
   onEditBooking,
   onCancelBooking,
+  onDeleteBooking,
   onAddBooking,
   isLoading,
 }: BookingListTableProps) {
   const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
-      case "confirmed":
+      case 'confirmed':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
             Confirmed
           </span>
         );
-      case "completed":
+      case 'completed':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
             Completed
           </span>
         );
-      case "cancelled":
+      case 'cancelled':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
             Cancelled
           </span>
         );
-      case "pending":
+      case 'pending':
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
@@ -68,9 +71,9 @@ export default function BookingListTable({
   };
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
   };
@@ -94,11 +97,10 @@ export default function BookingListTable({
         <div className="w-14 h-14 rounded-2xl bg-[#F4EFE9] text-[#C88A4B] flex items-center justify-center mx-auto mb-4">
           <CalendarDaysIcon className="w-8 h-8" />
         </div>
-        <h3 className="font-serif text-lg font-semibold text-[#1C1917] mb-1">
-          No bookings found
-        </h3>
+        <h3 className="font-serif text-lg font-semibold text-[#1C1917] mb-1">No bookings found</h3>
         <p className="text-xs sm:text-sm text-[#78716C] max-w-sm mx-auto mb-6 leading-relaxed">
-          No reservation records matched your search or filters. You can record a new reservation manually.
+          No reservation records matched your search or filters. You can record a new reservation
+          manually.
         </p>
         <button
           type="button"
@@ -146,9 +148,7 @@ export default function BookingListTable({
 
                   {/* Guest */}
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-[#1C1917]">
-                      {b.guestName}
-                    </div>
+                    <div className="font-semibold text-[#1C1917]">{b.guestName}</div>
                     <div className="text-[11px] text-[#78716C] truncate max-w-[160px]">
                       {b.email}
                     </div>
@@ -162,12 +162,12 @@ export default function BookingListTable({
 
                   {/* Nights */}
                   <td className="py-3.5 px-4 text-[#44403C] font-medium">
-                    {b.nights} {b.nights === 1 ? "night" : "nights"}
+                    {b.nights} {b.nights === 1 ? 'night' : 'nights'}
                   </td>
 
                   {/* Guests */}
                   <td className="py-3.5 px-4 text-[#44403C] font-medium">
-                    {b.guests} {b.guests === 1 ? "guest" : "guests"}
+                    {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                   </td>
 
                   {/* Amount */}
@@ -179,10 +179,7 @@ export default function BookingListTable({
                   <td className="py-3.5 px-4">{getStatusBadge(b.status)}</td>
 
                   {/* Actions */}
-                  <td
-                    className="py-3.5 px-4 text-right"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
@@ -200,7 +197,7 @@ export default function BookingListTable({
                       >
                         <PencilSquareIcon className="w-4 h-4" />
                       </button>
-                      {b.status !== "cancelled" && (
+                      {b.status !== 'cancelled' && (
                         <button
                           type="button"
                           onClick={() => onCancelBooking(b)}
@@ -210,6 +207,15 @@ export default function BookingListTable({
                           <XCircleIcon className="w-4 h-4" />
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => onDeleteBooking(b)}
+                        className="p-1.5 rounded-lg text-[#78716C] hover:text-red-700 hover:bg-red-50 transition-colors"
+                        title="Delete Booking Permanently"
+                        aria-label={`Delete booking ${b.bookingRef}`}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -235,17 +241,13 @@ export default function BookingListTable({
             </div>
 
             <div>
-              <h4 className="font-semibold text-sm text-[#1C1917]">
-                {b.guestName}
-              </h4>
+              <h4 className="font-semibold text-sm text-[#1C1917]">{b.guestName}</h4>
               <p className="text-xs text-[#78716C]">{b.email}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-[#F4EFE9]">
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#78716C]">
-                  Stay Dates
-                </p>
+                <p className="text-[10px] uppercase tracking-wider text-[#78716C]">Stay Dates</p>
                 <p className="font-medium text-[#1C1917]">
                   {b.checkIn} &rarr; {b.checkOut}
                 </p>
@@ -254,9 +256,7 @@ export default function BookingListTable({
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] uppercase tracking-wider text-[#78716C]">
-                  Total Amount
-                </p>
+                <p className="text-[10px] uppercase tracking-wider text-[#78716C]">Total Amount</p>
                 <p className="font-serif font-bold text-sm text-[#1C1917]">
                   {formatCurrency(b.amount)}
                 </p>
@@ -281,7 +281,7 @@ export default function BookingListTable({
               >
                 Edit
               </button>
-              {b.status !== "cancelled" && (
+              {b.status !== 'cancelled' && (
                 <button
                   type="button"
                   onClick={() => onCancelBooking(b)}
@@ -290,6 +290,14 @@ export default function BookingListTable({
                   Cancel
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => onDeleteBooking(b)}
+                aria-label={`Delete booking ${b.bookingRef}`}
+                className="px-3 py-1 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100"
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
@@ -298,12 +306,9 @@ export default function BookingListTable({
       {/* Pagination Footer */}
       <div className="bg-white rounded-2xl border border-[#E7E5E4] px-4 py-3 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#78716C]">
         <div>
-          Showing{" "}
-          <span className="font-semibold text-[#1C1917]">
-            {bookings.length}
-          </span>{" "}
-          of <span className="font-semibold text-[#1C1917]">{total}</span>{" "}
-          bookings (Page {page} of {totalPages})
+          Showing <span className="font-semibold text-[#1C1917]">{bookings.length}</span> of{' '}
+          <span className="font-semibold text-[#1C1917]">{total}</span> bookings (Page {page} of{' '}
+          {totalPages})
         </div>
 
         <div className="flex items-center gap-2">

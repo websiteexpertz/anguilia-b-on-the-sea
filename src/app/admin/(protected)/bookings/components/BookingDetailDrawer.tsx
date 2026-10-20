@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   XMarkIcon,
   UserIcon,
@@ -12,14 +12,16 @@ import {
   XCircleIcon,
   CheckCircleIcon,
   ClockIcon,
-} from "@heroicons/react/24/outline";
-import { Booking, BookingStatus } from "@/lib/types/booking";
+  TrashIcon,
+} from '@heroicons/react/24/outline';
+import { Booking, BookingStatus } from '@/lib/types/booking';
 
 interface BookingDetailDrawerProps {
   booking: Booking | null;
   onClose: () => void;
   onEdit: (booking: Booking) => void;
   onCancel: (booking: Booking) => void;
+  onDelete: (booking: Booking) => void;
   onStatusChange: (id: string, newStatus: BookingStatus) => Promise<void>;
   onNotesSave: (id: string, newNotes: string) => Promise<void>;
 }
@@ -29,11 +31,12 @@ export default function BookingDetailDrawer({
   onClose,
   onEdit,
   onCancel,
+  onDelete,
   onStatusChange,
   onNotesSave,
 }: BookingDetailDrawerProps) {
   const [mounted, setMounted] = useState(false);
-  const [notesText, setNotesText] = useState(booking?.notes || "");
+  const [notesText, setNotesText] = useState(booking?.notes || '');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
@@ -44,7 +47,7 @@ export default function BookingDetailDrawer({
   // Sync state when booking changes
   useEffect(() => {
     if (booking) {
-      setNotesText(booking.notes || "");
+      setNotesText(booking.notes || '');
     }
   }, [booking]);
 
@@ -72,9 +75,9 @@ export default function BookingDetailDrawer({
   };
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
   };
@@ -104,9 +107,7 @@ export default function BookingDetailDrawer({
                     {booking.status}
                   </span>
                 </div>
-                <h2 className="font-serif text-lg font-bold text-[#1C1917]">
-                  {booking.guestName}
-                </h2>
+                <h2 className="font-serif text-lg font-bold text-[#1C1917]">{booking.guestName}</h2>
               </div>
             </div>
 
@@ -128,21 +129,23 @@ export default function BookingDetailDrawer({
                 Update Booking Status
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(["pending", "confirmed", "completed", "cancelled"] as BookingStatus[]).map((st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    disabled={isUpdatingStatus}
-                    onClick={() => handleStatusClick(st)}
-                    className={`py-2 px-2.5 rounded-xl text-xs font-semibold capitalize transition-all text-center border ${
-                      booking.status === st
-                        ? "bg-[#1C1917] text-white border-[#1C1917] shadow-sm"
-                        : "bg-[#FDFBF7] text-[#78716C] border-[#E7E5E4] hover:border-[#C88A4B] hover:text-[#1C1917]"
-                    }`}
-                  >
-                    {st}
-                  </button>
-                ))}
+                {(['pending', 'confirmed', 'completed', 'cancelled'] as BookingStatus[]).map(
+                  (st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      disabled={isUpdatingStatus}
+                      onClick={() => handleStatusClick(st)}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-semibold capitalize transition-all text-center border ${
+                        booking.status === st
+                          ? 'bg-[#1C1917] text-white border-[#1C1917] shadow-sm'
+                          : 'bg-[#FDFBF7] text-[#78716C] border-[#E7E5E4] hover:border-[#C88A4B] hover:text-[#1C1917]'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -155,14 +158,12 @@ export default function BookingDetailDrawer({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <p className="text-[11px] text-[#78716C]">Full Name</p>
-                  <p className="font-semibold text-[#1C1917] text-sm">
-                    {booking.guestName}
-                  </p>
+                  <p className="font-semibold text-[#1C1917] text-sm">{booking.guestName}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-[#78716C]">Number of Guests</p>
                   <p className="font-semibold text-[#1C1917] text-sm">
-                    {booking.guests} {booking.guests === 1 ? "Guest" : "Guests"}
+                    {booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}
                   </p>
                 </div>
                 <div>
@@ -180,7 +181,7 @@ export default function BookingDetailDrawer({
                     href={`tel:${booking.phone}`}
                     className="font-medium text-[#1C1917] hover:underline"
                   >
-                    {booking.phone || "None specified"}
+                    {booking.phone || 'None specified'}
                   </a>
                 </div>
               </div>
@@ -195,27 +196,19 @@ export default function BookingDetailDrawer({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <p className="text-[11px] text-[#78716C]">Check-In</p>
-                  <p className="font-semibold text-[#1C1917] text-sm">
-                    {booking.checkIn}
-                  </p>
+                  <p className="font-semibold text-[#1C1917] text-sm">{booking.checkIn}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-[#78716C]">Check-Out</p>
-                  <p className="font-semibold text-[#1C1917] text-sm">
-                    {booking.checkOut}
-                  </p>
+                  <p className="font-semibold text-[#1C1917] text-sm">{booking.checkOut}</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-[#78716C]">Duration</p>
-                  <p className="font-semibold text-[#1C1917]">
-                    {booking.nights} Nights
-                  </p>
+                  <p className="font-semibold text-[#1C1917]">{booking.nights} Nights</p>
                 </div>
                 <div>
                   <p className="text-[11px] text-[#78716C]">Accommodation</p>
-                  <p className="font-semibold text-[#1C1917] truncate">
-                    {booking.accommodation}
-                  </p>
+                  <p className="font-semibold text-[#1C1917] truncate">{booking.accommodation}</p>
                 </div>
               </div>
             </div>
@@ -267,7 +260,7 @@ export default function BookingDetailDrawer({
                   disabled={isSavingNotes}
                   className="px-3 py-1.5 rounded-lg bg-[#1C1917] text-white text-xs font-semibold hover:bg-[#2B2623] transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {isSavingNotes ? "Saving Notes..." : "Save Notes"}
+                  {isSavingNotes ? 'Saving Notes...' : 'Save Notes'}
                 </button>
               </form>
             </div>
@@ -275,7 +268,7 @@ export default function BookingDetailDrawer({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 sm:p-6 border-t border-[#E7E5E4] bg-[#FDFBF7] flex items-center justify-between gap-3">
+        <div className="p-4 sm:p-6 border-t border-[#E7E5E4] bg-[#FDFBF7] flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => onEdit(booking)}
@@ -285,7 +278,7 @@ export default function BookingDetailDrawer({
             <span>Edit Booking</span>
           </button>
 
-          {booking.status !== "cancelled" && (
+          {booking.status !== 'cancelled' && (
             <button
               type="button"
               onClick={() => onCancel(booking)}
@@ -295,6 +288,15 @@ export default function BookingDetailDrawer({
               <span>Cancel Booking</span>
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => onDelete(booking)}
+            aria-label={`Delete booking ${booking.bookingRef} permanently`}
+            className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-red-300 bg-white hover:bg-red-50 text-red-700 text-xs font-semibold transition-all cursor-pointer"
+          >
+            <TrashIcon className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
         </div>
       </div>
     </div>,
