@@ -40,6 +40,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = (await request.json()) as UpdateInquiryDto;
 
+    if (body.status === "confirmed") {
+      return NextResponse.json(
+        { error: "Use the Confirm Booking action to verify availability and create the booking." },
+        { status: 400 }
+      );
+    }
+
     const updated = await updateInquiry(id, body);
 
     if (!updated) {

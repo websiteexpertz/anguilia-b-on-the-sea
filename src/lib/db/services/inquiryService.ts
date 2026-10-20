@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDatabase } from "../mongodb";
-import { refreshCalendarFeedIfStale } from "./calendarSyncService";
+import { refreshCalendarFeedIfStale, syncCalendarFeed } from "./calendarSyncService";
 import {
   CustomerInquiry,
   CreateInquiryDto,
@@ -355,6 +355,18 @@ export async function confirmInquiryBooking(
       booking: null,
       inquiry: null as any,
       error: "Inquiry does not have check-in and check-out dates specified",
+    };
+  }
+
+  try {
+    await syncCalendarFeed({ force: true });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "Calendar sync failed.";
+    return {
+      success: false,
+      booking: null,
+      inquiry: null as any,
+      error: `Cannot confirm booking because the connected VRBO calendar could not be refreshed: ${detail}`,
     };
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   EnvelopeIcon,
   ArrowPathIcon,
@@ -21,6 +22,7 @@ import DeleteInquiryModal from "./components/DeleteInquiryModal";
 import RejectInquiryModal from "./components/RejectInquiryModal";
 
 export default function AdminInquiriesPage() {
+  const router = useRouter();
   const [inquiries, setInquiries] = useState<CustomerInquiry[]>([]);
   const [stats, setStats] = useState<InquiryStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,6 +94,16 @@ export default function AdminInquiriesPage() {
 
   // Update inquiry status
   const handleStatusChange = async (id: string, newStatus: InquiryStatus) => {
+    if (newStatus === "confirmed") {
+      const inquiry = inquiries.find((item) => item._id === id);
+      if (!inquiry) {
+        showToast("Could not find this inquiry. Refresh and try again.", "error");
+        return;
+      }
+      await handleConfirmBooking(inquiry).catch(() => {});
+      return;
+    }
+
     try {
       const res = await fetch(`/api/admin/inquiries/${id}`, {
         method: "PATCH",
@@ -200,6 +212,7 @@ export default function AdminInquiriesPage() {
         `Booking confirmed (#${data.data?.booking?.bookingRef || "NEW"})! Dates are now locked on the calendar.`
       );
       await fetchInquiries();
+      router.push("/admin/bookings");
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : "Error confirming booking", "error");
       throw err;
