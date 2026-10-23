@@ -128,7 +128,9 @@ export default function RatesTable({ initialSeasons, initialCharges }: RatesTabl
           .map((c) => ({
             label: c.name,
             value: c.type === 'percentage' ? `${c.amount}%` : `$${c.amount}`,
-            note: c.appliedTo || (c.type === 'percentage' ? 'Applied to total rental' : 'Applied once per stay'),
+            note:
+              c.appliedTo ||
+              (c.type === 'percentage' ? 'Applied to total rental' : 'Applied once per stay'),
           }))
       : fallbackFeeRows;
 
@@ -296,9 +298,7 @@ export default function RatesTable({ initialSeasons, initialCharges }: RatesTabl
                     />
                   </div>
 
-                  {calcError && (
-                    <p className="text-xs text-rose-500 font-medium">{calcError}</p>
-                  )}
+                  {calcError && <p className="text-xs text-rose-500 font-medium">{calcError}</p>}
 
                   <button
                     type="button"
@@ -373,29 +373,14 @@ export default function RatesTable({ initialSeasons, initialCharges }: RatesTabl
                           }).format(estimate.total)}
                         </span>
                       </div>
-                      <div className="flex gap-3">
-                        <a
-                          href={`/book-now?checkIn=${checkIn}&checkOut=${checkOut}`}
-                          className="btn-primary flex-1 inline-flex items-center justify-center gap-2 py-3"
-                        >
-                          Book Now
-                        </a>
-                        <button
-                          onClick={() => setEstimate(null)}
-                          className="btn-outline flex-1 py-3 cursor-pointer"
-                        >
-                          Reset
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setEstimate(null)}
+                        className="btn-outline w-full py-3 cursor-pointer"
+                      >
+                        Reset
+                      </button>
                     </div>
-                  ) : (
-                    <a
-                      href="/book-now"
-                      className="w-full btn-primary inline-flex items-center justify-center gap-2 py-3 text-sm"
-                    >
-                      Book Now
-                    </a>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

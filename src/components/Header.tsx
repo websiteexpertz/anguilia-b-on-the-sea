@@ -13,16 +13,17 @@ const navLinks = [
   { label: 'FLOORPLANS', href: '/floorplans' },
 ];
 
-export default function Header() {
+export default function Header({ solid = false }: { solid?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navTextPrimary = scrolled ? 'text-stone-900' : 'text-white';
-  const navTextSecondary = scrolled ? 'text-stone-700' : 'text-white/70';
-  const navLinkText = scrolled
+  const isSolid = solid || scrolled;
+  const navTextPrimary = isSolid ? 'text-stone-900' : 'text-white';
+  const navTextSecondary = isSolid ? 'text-stone-700' : 'text-white/70';
+  const navLinkText = isSolid
     ? 'text-stone-900/95 hover:text-stone-700'
     : 'text-white/90 hover:text-white';
-  const menuLineColor = scrolled ? 'bg-stone-900' : 'bg-white';
+  const menuLineColor = isSolid ? 'bg-stone-900' : 'bg-white';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -42,7 +43,7 @@ export default function Header() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled
+          isSolid
             ? 'bg-white border-b border-stone-200 shadow-xl py-3'
             : 'bg-stone-950/5 backdrop-blur-[5px] shadow-sm py-4'
         }`}
@@ -76,29 +77,23 @@ export default function Header() {
           <div className="hidden lg:flex items-center gap-3">
             <a
               href="tel:+15086337355"
-              className={`w-10 h-10 rounded-3xl border ${scrolled ? 'border-stone-200/70 text-stone-900/85 hover:text-stone-700 hover:border-stone-300' : 'border-white/15 text-white/80 hover:text-white hover:border-white/30'} flex items-center justify-center transition-all duration-300 bg-white/5`}
+              className={`w-10 h-10 rounded-3xl border ${isSolid ? 'border-stone-200/70 text-stone-900/85 hover:text-stone-700 hover:border-stone-300' : 'border-white/15 text-white/80 hover:text-white hover:border-white/30'} flex items-center justify-center transition-all duration-300 bg-white/5`}
               aria-label="Call us"
             >
               <Icon name="PhoneIcon" size={16} />
             </a>
             <a
               href="mailto:anguillabonthesea@gmail.com"
-              className={`w-10 h-10 rounded-3xl border ${scrolled ? 'border-stone-200/70 text-stone-900/85 hover:text-stone-700 hover:border-stone-300' : 'border-white/15 text-white/80 hover:text-white hover:border-white/30'} flex items-center justify-center transition-all duration-300 bg-white/5`}
+              className={`w-10 h-10 rounded-3xl border ${isSolid ? 'border-stone-200/70 text-stone-900/85 hover:text-stone-700 hover:border-stone-300' : 'border-white/15 text-white/80 hover:text-white hover:border-white/30'} flex items-center justify-center transition-all duration-300 bg-white/5`}
               aria-label="Email us"
             >
               <Icon name="EnvelopeIcon" size={16} />
             </a>
-            <Link
-              href="/book-now"
-              className="rounded-full bg-white text-stone-950 px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.15em] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
-            >
-              Book Now
-            </Link>
           </div>
 
           {/* Mobile Toggle */}
           <button
-            className="lg:hidden w-11 h-11 flex flex-col gap-1.5 items-center justify-center rounded-3xl bg-white/10 ring-1 ring-white/15 backdrop-blur-md transition-all duration-300"
+            className={`lg:hidden w-11 h-11 flex flex-col gap-1.5 items-center justify-center rounded-3xl ring-1 backdrop-blur-md transition-all duration-300 ${isSolid ? 'bg-stone-100 ring-stone-200' : 'bg-white/10 ring-white/15'}`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >

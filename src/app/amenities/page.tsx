@@ -59,34 +59,16 @@ export default async function AmenitiesPage() {
     (i) => i.section === 'main_level'
   );
 
-  // 2. Categorized Breakdown Cards (3 distinct images, strictly non-overlapping)
-  const outdoorItem = pickUnique(
-    (i) => i.section === 'entertainment_deck' || i.section === 'attractions',
-    (i) => i.section === 'villa_exterior'
-  );
-  const techItem = pickUnique(
-    (i) => i.section === 'amenities',
-    (i) => i.section === 'main_level'
-  );
-  const culinaryItem = pickUnique(
-    (i) => i.section === 'main_level',
-    (i) => i.section === 'entertainment_deck'
-  );
-
   const poolSrc = poolItem?.url;
   const cinemaSrc = cinemaItem?.url;
   const kitchenSrc = kitchenItem?.url;
   const loungingSrc = loungingItem?.url;
 
-  const outdoorSrc = outdoorItem?.url;
-  const techSrc = techItem?.url;
-  const culinarySrc = culinaryItem?.url;
-
   return (
     <main className="min-h-screen bg-[#FBFBF9] text-[#0F172A] antialiased">
-      <Header />
+      <Header solid />
 
-      <section className="pt-12 pb-8">
+      <section className="pt-28 pb-8 sm:pt-32">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto">
             <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide text-[#0369A1] bg-[#E6F6FF] rounded-full">
@@ -121,7 +103,7 @@ export default async function AmenitiesPage() {
               {poolSrc && (
                 <Image
                   src={poolSrc}
-                  alt={poolItem?.altText || "Pool at B On The Sea"}
+                  alt={poolItem?.altText || 'Pool at B On The Sea'}
                   fill
                   className="object-cover transform group-hover:scale-105 transition-transform duration-500 absolute inset-0"
                   priority
@@ -148,7 +130,7 @@ export default async function AmenitiesPage() {
               {cinemaSrc && (
                 <Image
                   src={cinemaSrc}
-                  alt={cinemaItem?.altText || "Home theater"}
+                  alt={cinemaItem?.altText || 'Home theater'}
                   fill
                   className="object-cover transform group-hover:scale-105 transition-transform duration-500 absolute inset-0"
                 />
@@ -171,7 +153,7 @@ export default async function AmenitiesPage() {
               {kitchenSrc && (
                 <Image
                   src={kitchenSrc}
-                  alt={kitchenItem?.altText || "Kitchen and alfresco dining"}
+                  alt={kitchenItem?.altText || 'Kitchen and alfresco dining'}
                   fill
                   className="object-cover transform group-hover:scale-105 transition-transform duration-500 absolute inset-0"
                 />
@@ -196,7 +178,7 @@ export default async function AmenitiesPage() {
               {loungingSrc && (
                 <Image
                   src={loungingSrc}
-                  alt={loungingItem?.altText || "Ocean deck lounging"}
+                  alt={loungingItem?.altText || 'Ocean deck lounging'}
                   fill
                   className="object-cover transform group-hover:scale-105 transition-transform duration-500 absolute inset-0"
                 />
@@ -222,14 +204,12 @@ export default async function AmenitiesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="relative h-28 w-full overflow-hidden bg-slate-900">
-                {outdoorSrc && (
-                  <Image
-                    src={outdoorSrc}
-                    alt={outdoorItem?.altText || "Outdoor & Pools"}
-                    fill
-                    className="object-cover"
-                  />
-                )}
+                <Image
+                  src="/images/VillaExteriorFromAbove1.jpg"
+                  alt="Villa exterior from above"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
@@ -260,24 +240,18 @@ export default async function AmenitiesPage() {
                   <li>
                     <strong>Dual Sun Decks:</strong> Seamless indoor-outdoor Caribbean living.
                   </li>
-                  <li>
-                    <strong>Outdoor Grill &amp; Dining:</strong> Premium gas grill and alfresco
-                    dining setup.
-                  </li>
                 </ul>
               </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="relative h-28 w-full overflow-hidden bg-slate-900">
-                {techSrc && (
-                  <Image
-                    src={techSrc}
-                    alt={techItem?.altText || "Entertainment & Tech"}
-                    fill
-                    className="object-cover"
-                  />
-                )}
+                <Image
+                  src="/images/home/Theater1.jpg"
+                  alt="Home theater at B On The Sea"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
@@ -307,8 +281,8 @@ export default async function AmenitiesPage() {
                     system.
                   </li>
                   <li>
-                    <strong>High-Speed Starlink/Wi-Fi:</strong> Uninterrupted connectivity
-                    throughout the villa.
+                    <strong>High-Speed Wi-Fi:</strong> Uninterrupted connectivity throughout the
+                    villa.
                   </li>
                 </ul>
               </div>
@@ -316,14 +290,12 @@ export default async function AmenitiesPage() {
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="relative h-28 w-full overflow-hidden bg-slate-900">
-                {culinarySrc && (
-                  <Image
-                    src={culinarySrc}
-                    alt={culinaryItem?.altText || "Culinary & Hospitality"}
-                    fill
-                    className="object-cover"
-                  />
-                )}
+                <Image
+                  src="/images/GazeboKitchen1.jpg"
+                  alt="Gazebo kitchen and dining area"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
@@ -345,53 +317,23 @@ export default async function AmenitiesPage() {
                 </div>
                 <ul className="space-y-2 text-sm text-[#334155]">
                   <li>
-                    <strong>Dual Kitchen Setup:</strong> Fully equipped gourmet indoor kitchen +
-                    outdoor prep station.
+                    <strong>Kitchen Setup:</strong> Fully equipped gourmet indoor kitchen + dining
+                    area.
+                  </li>
+                  <li>
+                    <strong>Outdoor Grill &amp; Dining:</strong> Premium gas grill and alfresco
+                    dining setup.
                   </li>
                   <li>
                     <strong>Dedicated Wine Refrigerator:</strong> Temperature-controlled storage for
                     fine vintages.
                   </li>
                   <li>
-                    <strong>Full Concierge Service:</strong> Itinerary planning, boat charters, and
-                    island bookings.
-                  </li>
-                  <li>
                     <strong>Personalized Services (On Request):</strong> Private chef, in-villa
-                    massage, daily housekeeping, and Butler services.
+                    massage, daily housekeeping.
                   </li>
                 </ul>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Concierge CTA Banner */}
-      <section className="py-8">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="rounded-2xl bg-[#16202A] text-white p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">Have a Special Request?</h3>
-              <p className="mt-1 text-sm text-slate-200 max-w-lg">
-                From private island hopping to personalized dining experiences, our concierge team
-                curates every detail of your stay.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <a
-                href="/book-now"
-                className="inline-block bg-white text-[#16202A] px-4 py-2 rounded-md font-semibold shadow hover:shadow-lg transition"
-              >
-                Inquire Concierge
-              </a>
-              <a
-                href="/accommodations"
-                className="inline-block border border-white text-white px-4 py-2 rounded-md font-semibold hover:bg-white/5 transition"
-              >
-                Explore Accommodations
-              </a>
             </div>
           </div>
         </div>

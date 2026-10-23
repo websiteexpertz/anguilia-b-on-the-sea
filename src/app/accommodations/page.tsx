@@ -33,10 +33,9 @@ export default async function AccommodationsPage() {
 
   return (
     <>
-      <Header />
+      <Header solid />
 
-
-      <main className="mx-auto max-w-7xl px-5 py-12 sm:px-6 sm:py-16 lg:py-20">
+      <main className="mx-auto max-w-7xl px-5 pt-28 pb-12 sm:px-6 sm:pt-32 sm:pb-16 lg:pt-36 lg:pb-20">
         {/* Page Header */}
         <header className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
           <p className="text-xs font-medium tracking-[0.3em] text-slate-500 sm:text-sm">
@@ -67,8 +66,8 @@ export default async function AccommodationsPage() {
           </h2>
 
           <p className="mx-auto mt-4 max-w-xl text-slate-600">
-            Discover private villa stay where beautiful surroundings, peaceful spaces, and
-            Caribbean living come together.
+            Discover private villa stay where beautiful surroundings, peaceful spaces, and Caribbean
+            living come together.
           </p>
 
           <a
